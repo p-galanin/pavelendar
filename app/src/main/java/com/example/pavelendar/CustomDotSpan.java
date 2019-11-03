@@ -26,7 +26,7 @@ public class CustomDotSpan implements LineBackgroundSpan {
         if (this.color != 0) {
             paint.setColor(this.color);
         }
-
+        // TODO right bound checking
         canvas.drawCircle(left + this.radius + this.position * this.radius * 4, bottom + this.radius, this.radius, paint);
         paint.setColor(oldColor);
 

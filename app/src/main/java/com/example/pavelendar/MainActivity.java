@@ -34,21 +34,35 @@
  */
 package com.example.pavelendar;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CalendarView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.pavelendar.dao.CalendarDao;
+import com.example.pavelendar.entity.Category;
+import com.example.pavelendar.entity.Entry;
+import com.example.pavelendar.viewmodel.SomeNameViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -89,6 +103,20 @@ public class MainActivity extends AppCompatActivity {
 //
 //        });
 
+        // final SomeNameViewModel viewModel = ViewModelProviders.of(this, new SomeNameViewModel.Factory()).get(SomeNameViewModel.class);
+        final SomeNameViewModel viewModel = ViewModelProviders.of(this).get(SomeNameViewModel.class);
+        viewModel.getEntries().observe(this, new Observer<List<Entry>>() {
+
+            @Override
+            public void onChanged(final List<Entry> entries) {
+                itWorksForEntries(entries);
+            }
+
+        });
+
+
+        createTestData();
+
         this.oneDayFragment = new OneDayFragment();
 
         final FragmentTransaction fragmentTx = getSupportFragmentManager().beginTransaction();
@@ -108,7 +136,9 @@ public class MainActivity extends AppCompatActivity {
         this.calendarViewCustom = findViewById(R.id.calendarView);
         if (this.calendarViewCustom != null) {
 
-            this.calendarViewCustom.addDecorator(new EventDecorator());
+            this.calendarViewCustom.addDecorator(new EventDecorator(Color.RED, 0));
+            this.calendarViewCustom.addDecorator(new EventDecorator(Color.BLACK, 1));
+            this.calendarViewCustom.addDecorator(new EventDecorator(Color.CYAN, 2));
 
             this.calendarViewCustom.setOnDateChangedListener(new OnDateSelectedListener() {
 
@@ -119,17 +149,13 @@ public class MainActivity extends AppCompatActivity {
                     final int month = date.getMonth();
                     final int dayOfMonth = date.getDay();
 
-                    final View fragmentView = MainActivity.this.oneDayFragment.getView();
-
-                    if (fragmentView != null) {
-                        final TextView tvFragment = findViewById(R.id.tv_in_fragment);
-                        tvFragment.setText(year + " " + month + " " + dayOfMonth);
-                    }
+                    Toast.makeText(MainActivity.this, "khm", Toast.LENGTH_SHORT).show();
 
                 }
 
             });
         }
+
 
         //this.calendarView = findViewById(R.id.calendarView);
 //        if (this.calendarView != null) {
@@ -165,6 +191,40 @@ public class MainActivity extends AppCompatActivity {
 //        });
 
 
+
+    }
+
+    private void createTestData() {
+        final CalendarDao dao = CalendarDao.Holder.get(getApplicationContext());
+        final Category category2 = new Category("Pasha2" + LocalTime.now().toNanoOfDay());
+        final long someCategoryId = dao.insertCategory(new Category("Pasha1" + LocalTime.now().toNanoOfDay()));
+        final long category2Id = dao.insertCategory(category2);
+        dao.insertEntry(new Entry(category2Id));
+
+    }
+
+    private void itWorksForEntries(final List<Entry> entries) {
+
+        final View fragmentView = MainActivity.this.oneDayFragment.getView();
+
+        if (fragmentView != null) {
+            final TextView tvFragment = findViewById(R.id.tv_in_fragment);
+
+            final StringBuilder sb = new StringBuilder();
+
+            sb.append(LocalDateTime.now() + "\n\n");
+
+            for (Entry entry : entries) {
+                sb.append(entry.getCategoryId());
+                sb.append("|");
+                sb.append(entry.getDate());
+                sb.append("\n");
+            }
+
+            tvFragment.setText(sb.toString());
+        }
+
+        Toast.makeText(MainActivity.this, "YUPI", Toast.LENGTH_SHORT).show();
 
     }
 
